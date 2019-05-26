@@ -26,6 +26,16 @@ var STATUS = Module.STATUS = {
   ERROR: 7
 }
 
+function execDependencies(mod) {
+  var dependencies = (mod && mod.dependencies) || []
+  var len = dependencies.length
+  var deps = []
+  for (var i = 0; i < len; i++) {
+    var m = mod.deps[dependencies[i]]
+    deps[i] = m && m.exec()
+  }
+  return deps
+}
 
 function Module(uri, deps) {
   this.uri = uri
@@ -198,7 +208,7 @@ Module.prototype.exec = function () {
   var factory = mod.factory
 
   var exports = isFunction(factory) ?
-    factory.call(mod.exports = {}, require, mod.exports, mod) :
+    factory.apply(mod.exports = {}, execDependencies(mod)) :
     factory
 
   if (exports === undefined) {
